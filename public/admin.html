@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ХӨРС · Бүтээгдэхүүн удирдах</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --soil-dark:#2b2018; --soil:#4a3728; --leaf-deep:#2f4a34; --leaf:#5c8a52;
+    --carrot:#e2792f; --tomato:#c1443c; --cream:#f6f1e4; --paper:#fffdf7; --line: rgba(43,32,24,0.14);
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--cream); color:var(--soil-dark); font-family:'Manrope',sans-serif; padding-bottom:60px; }
+  h1,h2{ font-family:'Fraunces',serif; font-weight:700; margin:0; }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+  header{ background:var(--soil-dark); color:var(--cream); padding:22px 20px; position:sticky; top:0; z-index:10; }
+  header h1{ font-size:22px; }
+  header .sub{ font-size:12.5px; opacity:.65; margin-top:4px; }
+  .wrap{ max-width:720px; margin:0 auto; padding:0 16px; }
+
+  .gate{ max-width:340px; margin:80px auto; text-align:center; padding:0 20px; }
+  .gate h2{ font-size:24px; margin-bottom:10px; }
+  .gate p{ color:var(--soil); opacity:.7; font-size:14px; margin-bottom:24px; }
+  .gate input{ width:100%; text-align:center; letter-spacing:.3em; font-size:22px; padding:16px; border-radius:12px; border:1.5px solid var(--line); background:var(--paper); font-family:'IBM Plex Mono',monospace; }
+  .gate button{ width:100%; margin-top:14px; background:var(--leaf-deep); color:var(--paper); border:none; border-radius:12px; padding:15px; font-weight:700; font-size:15px; cursor:pointer; }
+  .gate .err{ color:#b3392f; font-size:13px; margin-top:10px; min-height:18px; }
+
+  .add-panel{ background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:18px; margin:20px 0; }
+  .add-panel h3{ font-size:16px; margin-bottom:14px; }
+  .add-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .add-grid input, .add-grid select{ padding:11px 13px; border-radius:9px; border:1.5px solid var(--line); font-size:14px; background:var(--cream); font-family:'Manrope',sans-serif; }
+  .add-grid .full{ grid-column:1/-1; }
+  .add-panel button{ width:100%; margin-top:12px; background:var(--soil-dark); color:var(--cream); border:none; border-radius:10px; padding:13px; font-weight:700; font-size:14px; cursor:pointer; }
+
+  .plist{ margin-top:6px; }
+  .prow{ display:flex; align-items:center; gap:12px; background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:13px 16px; margin-bottom:10px; }
+  .prow.inactive{ opacity:.5; }
+  .p-icon{ width:42px;height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+  .p-info{ flex:1; min-width:0; }
+  .p-info h4{ margin:0 0 2px; font-size:14.5px; font-weight:700; }
+  .p-info .mono{ font-size:11.5px; opacity:.6; }
+  .p-price{ display:flex; align-items:center; gap:4px; }
+  .p-price input{ width:76px; padding:8px 9px; border-radius:8px; border:1.5px solid var(--line); font-family:'IBM Plex Mono',monospace; font-size:13px; text-align:right; }
+  .p-actions{ display:flex; gap:6px; }
+  .icon-btn{ width:34px;height:34px; border-radius:9px; border:1.5px solid var(--line); background:var(--paper); cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; }
+  .icon-btn.toggle.on{ background:#dcecd3; border-color:var(--leaf); }
+  .icon-btn.toggle.off{ background:#f3dcae; border-color:#c98a2a; }
+  .icon-btn.danger{ color:var(--tomato); }
+  .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(20px); opacity:0; background:var(--soil-dark); color:var(--cream); padding:12px 20px; border-radius:999px; font-size:13.5px; font-weight:600; transition:.25s; pointer-events:none; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .section-label{ font-size:12.5px; text-transform:uppercase; letter-spacing:.08em; opacity:.5; margin:22px 0 10px; font-family:'IBM Plex Mono',monospace; }
+</style>
+</head>
+<body>
+
+<div id="gate" class="gate">
+  <h2>🥕 Бүтээгдэхүүн удирдах</h2>
+  <p>Ажлын PIN кодоо оруулна уу.</p>
+  <input id="pinInput" type="password" inputmode="numeric" placeholder="••••" maxlength="10">
+  <button onclick="tryLogin()">Нэвтрэх</button>
+  <div class="err" id="loginErr"></div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="wrap">
+      <h1>🥕 Бүтээгдэхүүн удирдах</h1>
+      <div class="sub">Дууссан ногоог түр унтраа, шинэ ногоо нэм, үнэ шинэчил</div>
+    </div>
+  </header>
+  <div class="wrap">
+    <div class="add-panel">
+      <h3>+ Шинэ бүтээгдэхүүн нэмэх</h3>
+      <div class="add-grid">
+        <input id="newName" placeholder="Нэр (жишээ: Ногоон перец)">
+        <select id="newCategory">
+          <option value="үндэслэг">үндэслэг</option>
+          <option value="навчит">навчит</option>
+          <option value="жимслэг">жимслэг</option>
+        </select>
+        <input id="newUnit" placeholder="Нэгж (кг, боодол...)">
+        <input id="newPrice" type="number" placeholder="Үнэ (₮)">
+        <input id="newEmoji" placeholder="Эможи (жишээ: 🥕)" class="full">
+      </div>
+      <button onclick="addProduct()">Нэмэх</button>
+    </div>
+
+    <div class="section-label">Идэвхтэй бүтээгдэхүүн</div>
+    <div class="plist" id="activeList"></div>
+
+    <div class="section-label">Дууссан / нуусан бүтээгдэхүүн</div>
+    <div class="plist" id="inactiveList"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+let pin = sessionStorage.getItem('adminPin') || '';
+let products = [];
+
+function money(n){ return Number(n).toLocaleString('en-US') + ' ₮'; }
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(window._t); window._t = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+async function tryLogin(){
+  const val = document.getElementById('pinInput').value.trim();
+  if(!val) return;
+  pin = val;
+  const ok = await loadProducts();
+  if(ok){
+    sessionStorage.setItem('adminPin', pin);
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+  }
+}
+
+async function loadProducts(){
+  try{
+    const res = await fetch(`${API}/api/admin/products`, { headers: { 'x-courier-pin': pin } });
+    if(res.status === 401){ document.getElementById('loginErr').textContent = 'PIN буруу байна.'; return false; }
+    if(!res.ok){ document.getElementById('loginErr').textContent = 'Алдаа гарлаа.'; return false; }
+    products = await res.json();
+    render();
+    return true;
+  } catch(e){
+    document.getElementById('loginErr').textContent = 'Сервертэй холбогдоход алдаа гарлаа.';
+    return false;
+  }
+}
+
+function render(){
+  const active = products.filter(p => p.active);
+  const inactive = products.filter(p => !p.active);
+  document.getElementById('activeList').innerHTML = active.length ? active.map(row).join('') : `<div class="mono" style="opacity:.5;font-size:13px;">Идэвхтэй бүтээгдэхүүн алга.</div>`;
+  document.getElementById('inactiveList').innerHTML = inactive.length ? inactive.map(row).join('') : `<div class="mono" style="opacity:.5;font-size:13px;">Дууссан бүтээгдэхүүн алга.</div>`;
+}
+
+function row(p){
+  return `
+    <div class="prow ${p.active ? '' : 'inactive'}">
+      <div class="p-icon" style="background:${p.color}">${p.emoji}</div>
+      <div class="p-info">
+        <h4>${p.name}</h4>
+        <div class="mono">${p.category} · ${p.unit}</div>
+      </div>
+      <div class="p-price">
+        <input type="number" value="${p.price}" onchange="updatePrice(${p.id}, this.value)">
+      </div>
+      <div class="p-actions">
+        <button class="icon-btn toggle ${p.active ? 'on' : 'off'}" title="${p.active ? 'Дууссан гэж тэмдэглэх' : 'Дахин идэвхжүүлэх'}" onclick="toggleActive(${p.id}, ${p.active ? 0 : 1})">${p.active ? '✓' : '✕'}</button>
+        <button class="icon-btn danger" title="Бүрмөсөн устгах" onclick="deleteProduct(${p.id}, '${p.name.replace(/'/g,"")}')">🗑</button>
+      </div>
+    </div>`;
+}
+
+async function updatePrice(id, price){
+  price = Math.round(Number(price));
+  if(!price || price <= 0){ showToast('Үнэ буруу байна'); loadProducts(); return; }
+  await fetch(`${API}/api/admin/products/${id}`, {
+    method:'PATCH',
+    headers:{'Content-Type':'application/json','x-courier-pin':pin},
+    body: JSON.stringify({ price })
+  });
+  showToast('Үнэ шинэчлэгдлээ');
+  loadProducts();
+}
+
+async function toggleActive(id, active){
+  await fetch(`${API}/api/admin/products/${id}`, {
+    method:'PATCH',
+    headers:{'Content-Type':'application/json','x-courier-pin':pin},
+    body: JSON.stringify({ active })
+  });
+  showToast(active ? 'Дахин идэвхжлээ' : 'Дууссан гэж тэмдэглэлээ');
+  loadProducts();
+}
+
+async function deleteProduct(id, name){
+  if(!confirm(`"${name}"-г бүрмөсөн устгах уу? Энэ үйлдлийг буцаах боломжгүй.`)) return;
+  await fetch(`${API}/api/admin/products/${id}`, { method:'DELETE', headers:{'x-courier-pin':pin} });
+  showToast('Устгагдлаа');
+  loadProducts();
+}
+
+async function addProduct(){
+  const name = document.getElementById('newName').value.trim();
+  const category = document.getElementById('newCategory').value;
+  const unit = document.getElementById('newUnit').value.trim();
+  const price = Math.round(Number(document.getElementById('newPrice').value));
+  const emoji = document.getElementById('newEmoji').value.trim() || '🥬';
+
+  if(!name || !unit || !price){ showToast('Нэр, нэгж, үнээ бөглөнө үү'); return; }
+
+  const res = await fetch(`${API}/api/admin/products`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-courier-pin':pin},
+    body: JSON.stringify({ name, category, unit, price, emoji, color:'#c9e0a6' })
+  });
+  if(!res.ok){ showToast('Нэмэхэд алдаа гарлаа'); return; }
+
+  document.getElementById('newName').value = '';
+  document.getElementById('newUnit').value = '';
+  document.getElementById('newPrice').value = '';
+  document.getElementById('newEmoji').value = '';
+  showToast(`"${name}" нэмэгдлээ`);
+  loadProducts();
+}
+
+if(pin){
+  loadProducts().then(ok => {
+    if(ok){
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    }
+  });
+}
+document.getElementById('pinInput').addEventListener('keydown', e => { if(e.key === 'Enter') tryLogin(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ХӨРС · Хүнсний ногооны хүргэлт</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --soil-dark:#2b2018; --soil:#4a3728; --leaf-deep:#2f4a34; --leaf:#5c8a52; --leaf-bright:#8fb96a;
+    --carrot:#e2792f; --tomato:#c1443c; --cream:#f6f1e4; --cream-2:#ede4cf; --paper:#fffdf7; --line: rgba(43,32,24,0.14);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{ margin:0; background:var(--cream); color:var(--soil-dark); font-family:'Manrope',sans-serif; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3,.display{ font-family:'Fraunces',serif; font-weight:600; letter-spacing:-0.01em; margin:0; }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+  a{color:inherit;}
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 28px; }
+  @media (max-width:640px){ .wrap{padding:0 18px;} }
+  nav{ position:sticky; top:0; z-index:50; background:rgba(246,241,228,0.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; height:72px; }
+  .logo{ display:flex; align-items:center; gap:10px; font-family:'Fraunces',serif; font-weight:700; font-size:22px; }
+  .logo .dot{ width:11px;height:11px;border-radius:50% 50% 50% 4px; background:var(--leaf); transform:rotate(45deg); display:inline-block; }
+  .navlinks{ display:flex; gap:32px; font-size:14.5px; font-weight:600; }
+  .navlinks a{ text-decoration:none; opacity:.8; }
+  .cart-btn{ display:flex; align-items:center; gap:8px; background:var(--soil-dark); color:var(--cream); border:none; border-radius:999px; padding:10px 18px; font-weight:700; font-size:14px; cursor:pointer; }
+  .cart-count{ background:var(--carrot); color:#fff; border-radius:50%; width:20px;height:20px; display:inline-flex; align-items:center; justify-content:center; font-size:11.5px; }
+  @media (max-width:760px){ .navlinks{display:none;} }
+  .hero{ padding:76px 0 40px; }
+  .hero-grid{ display:grid; grid-template-columns:1.15fr 0.85fr; gap:56px; align-items:center; }
+  @media (max-width:900px){ .hero-grid{ grid-template-columns:1fr; } }
+  .eyebrow{ display:inline-flex; align-items:center; gap:8px; font-family:'IBM Plex Mono',monospace; font-size:12.5px; text-transform:uppercase; letter-spacing:.12em; color:var(--leaf-deep); background:var(--leaf-bright); padding:6px 12px; border-radius:999px; margin-bottom:22px; }
+  .hero h1{ font-size:clamp(40px,6vw,68px); line-height:1.02; }
+  .hero h1 em{ font-style:italic; color:var(--leaf-deep); }
+  .hero p.lead{ font-size:18px; line-height:1.6; color:var(--soil); max-width:480px; margin:22px 0 30px; }
+  .hero-cta{ display:flex; gap:14px; flex-wrap:wrap; }
+  .btn-primary{ background:var(--leaf-deep); color:var(--paper); border:none; border-radius:12px; padding:15px 26px; font-weight:700; font-size:15px; cursor:pointer; font-family:'Manrope',sans-serif; box-shadow:0 6px 0 #1c3123; transition:transform .12s; }
+  .btn-primary:active{ transform:translateY(4px); box-shadow:0 2px 0 #1c3123; }
+  .btn-primary:disabled{ opacity:.55; cursor:not-allowed; }
+  .btn-ghost{ background:transparent; border:1.5px solid var(--soil-dark); border-radius:12px; padding:15px 26px; font-weight:700; font-size:15px; cursor:pointer; font-family:'Manrope',sans-serif; }
+  .crate{ position:relative; background:var(--paper); border:1px solid var(--line); border-radius:26px 8px 26px 8px; padding:26px; box-shadow:0 20px 50px -20px rgba(43,32,24,.35); transform:rotate(1.5deg); }
+  .crate::before{ content:"ӨНӨӨДРИЙН СУУДЛАГА"; position:absolute; top:-13px; left:24px; background:var(--carrot); color:#fff; font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.08em; padding:5px 10px; border-radius:6px; transform:rotate(-1.5deg); }
+  .crate-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:10px; }
+  .veg-chip{ aspect-ratio:1; border-radius:50% 50% 45% 45%/55% 55% 45% 45%; display:flex; align-items:center; justify-content:center; font-size:30px; box-shadow:inset 0 -6px 10px rgba(0,0,0,.08); }
+  .crate-foot{ display:flex; justify-content:space-between; align-items:baseline; margin-top:18px; padding-top:14px; border-top:1px dashed var(--line); }
+  .crate-foot .mono{ font-size:12px; opacity:.65; }
+  .crate-foot .fresh{ font-family:'Fraunces',serif; font-size:15px; color:var(--leaf-deep); font-weight:600; }
+  .strip{ background:var(--soil-dark); color:var(--cream); padding:14px 0; overflow:hidden; }
+  .strip-inner{ display:flex; gap:48px; white-space:nowrap; animation:scroll 22s linear infinite; font-family:'IBM Plex Mono',monospace; font-size:13px; }
+  @keyframes scroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+  section{ padding:84px 0; }
+  .sec-head{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:42px; gap:20px; flex-wrap:wrap; }
+  .sec-head h2{ font-size:clamp(30px,4vw,42px); }
+  .sec-head p{ max-width:380px; color:var(--soil); opacity:.75; line-height:1.55; font-size:15px; }
+  .filters{ display:flex; gap:10px; margin-bottom:30px; flex-wrap:wrap; }
+  .filter-btn{ border:1.5px solid var(--line); background:var(--paper); border-radius:999px; padding:9px 16px; font-size:13.5px; font-weight:600; cursor:pointer; color:var(--soil-dark); }
+  .filter-btn.active{ background:var(--leaf-deep); color:var(--cream); border-color:var(--leaf-deep); }
+  .product-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; }
+  @media (max-width:940px){ .product-grid{ grid-template-columns:repeat(2,1fr);} }
+  .card{ background:var(--paper); border:1px solid var(--line); border-radius:18px; padding:18px; display:flex; flex-direction:column; gap:12px; transition:transform .15s; }
+  .card:hover{ transform:translateY(-4px); }
+  .card-visual{ aspect-ratio:1.2; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:44px; }
+  .card h3{ font-size:17px; font-weight:600; }
+  .card .sub{ font-size:12.5px; opacity:.65; font-family:'IBM Plex Mono',monospace; }
+  .card-foot{ display:flex; align-items:center; justify-content:space-between; margin-top:auto; }
+  .price{ font-weight:800; font-size:16px; }
+  .add-btn{ width:36px;height:36px;border-radius:10px; border:none; background:var(--soil-dark); color:var(--cream); font-size:20px; cursor:pointer; }
+  .how{ background:var(--leaf-deep); color:var(--cream); border-radius:28px; }
+  .how .wrap{ padding:0; }
+  .how-inner{ padding:64px 40px; }
+  .how-inner .sec-head h2{ color:var(--cream); }
+  .how-inner .sec-head p{ color:var(--cream); opacity:.75; }
+  .steps{ display:grid; grid-template-columns:repeat(4,1fr); gap:22px; }
+  @media (max-width:880px){ .steps{ grid-template-columns:1fr 1fr; } }
+  .step{ border-top:2px solid rgba(246,241,228,.25); padding-top:16px; }
+  .step .num{ font-family:'IBM Plex Mono',monospace; font-size:13px; opacity:.6; }
+  .step h3{ font-size:19px; margin:10px 0 8px; }
+  .step p{ font-size:14px; line-height:1.55; opacity:.8; margin:0; }
+  .track-panel{ background:var(--paper); border:1px solid var(--line); border-radius:22px; padding:36px; }
+  .track-form{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:28px; }
+  .track-form input{ flex:1; min-width:220px; border:1.5px solid var(--line); border-radius:10px; padding:13px 16px; font-size:14.5px; background:var(--cream); }
+  .rail{ position:relative; padding-left:6px; }
+  .rail-line{ position:absolute; left:17px; top:8px; bottom:8px; width:2px; background:var(--line); }
+  .rail-fill{ position:absolute; left:17px; top:8px; width:2px; background:var(--leaf); transition:height .5s ease; }
+  .tstep{ position:relative; display:flex; gap:18px; padding:16px 0; }
+  .tdot{ width:36px;height:36px; border-radius:50%; background:var(--cream-2); border:2px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; z-index:1; transition:.3s; }
+  .tstep.done .tdot{ background:var(--leaf); border-color:var(--leaf); color:#fff; }
+  .tstep.current .tdot{ background:var(--carrot); border-color:var(--carrot); color:#fff; animation:pulse 1.4s infinite; }
+  @keyframes pulse{ 0%,100%{box-shadow:0 0 0 0 rgba(226,121,47,.4);} 50%{box-shadow:0 0 0 8px rgba(226,121,47,0);} }
+  .tstep h4{ margin:0 0 3px; font-size:15.5px; font-weight:700; }
+  .tstep p{ margin:0; font-size:13px; opacity:.6; }
+  .tstep.pending h4, .tstep.pending p{ opacity:.4; }
+  .track-msg{ font-size:14px; opacity:.7; padding:6px 0; }
+  .cta-band{ background:var(--soil-dark); color:var(--cream); padding:70px 0; }
+  .cta-band h2{ color:var(--cream); font-size:clamp(28px,4vw,40px); max-width:600px; }
+  .order-form{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:32px; }
+  @media (max-width:640px){ .order-form{grid-template-columns:1fr;} }
+  .order-form input, .order-form textarea{ background:#3a2c20; border:1px solid rgba(246,241,228,.2); border-radius:10px; padding:13px 16px; color:var(--cream); font-size:14.5px; font-family:'Manrope',sans-serif; }
+  .order-form input::placeholder, .order-form textarea::placeholder{ color:rgba(246,241,228,.5); }
+  .order-form textarea{ grid-column:1/-1; resize:vertical; min-height:70px; }
+  .order-form .full{ grid-column:1/-1; }
+  .pay-box{ background:#3a2c20; border-radius:14px; padding:20px; margin-top:20px; display:none; }
+  .pay-box.show{ display:block; }
+  .pay-box img{ width:170px; height:170px; border-radius:10px; background:#fff; padding:8px; display:block; margin:0 auto 14px; }
+  .pay-box p{ text-align:center; font-size:13.5px; opacity:.8; margin:0; }
+  footer{ padding:36px 0 50px; }
+  .foot-row{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; }
+  .foot-row .mono{ font-size:12.5px; opacity:.55; }
+  .overlay{ position:fixed; inset:0; background:rgba(43,32,24,.4); opacity:0; pointer-events:none; transition:opacity .25s; z-index:90; }
+  .overlay.open{ opacity:1; pointer-events:auto; }
+  .drawer{ position:fixed; top:0; right:0; height:100%; width:400px; max-width:92vw; background:var(--paper); transform:translateX(100%); transition:transform .3s ease; z-index:100; display:flex; flex-direction:column; }
+  .drawer.open{ transform:translateX(0); }
+  .drawer-head{ padding:24px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
+  .drawer-head h3{ font-size:22px; }
+  .drawer-close{ background:none; border:none; font-size:22px; cursor:pointer; }
+  .drawer-items{ flex:1; overflow-y:auto; padding:10px 24px; }
+  .drawer-item{ display:flex; gap:12px; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); }
+  .drawer-item .di-icon{ width:44px;height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+  .drawer-item .di-info{ flex:1; }
+  .drawer-item .di-info h4{ margin:0 0 3px; font-size:14.5px; }
+  .drawer-item .di-info .mono{ font-size:12px; opacity:.6; }
+  .qty{ display:flex; align-items:center; gap:8px; }
+  .qty button{ width:24px;height:24px; border-radius:6px; border:1px solid var(--line); background:var(--cream); cursor:pointer; font-size:14px; }
+  .drawer-foot{ padding:22px 24px 26px; border-top:1px solid var(--line); }
+  .drawer-total{ display:flex; justify-content:space-between; font-weight:800; font-size:17px; margin-bottom:16px; }
+  .empty-cart{ text-align:center; padding:60px 20px; opacity:.55; font-size:14px; }
+  .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); opacity:0; background:var(--soil-dark); color:var(--cream); padding:13px 22px; border-radius:999px; font-size:14px; font-weight:600; z-index:110; transition:.25s; pointer-events:none; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo"><span class="dot"></span>ХӨРС</div>
+    <div class="navlinks">
+      <a href="#products">Ногоо сонгох</a>
+      <a href="#how">Хэрхэн ажилладаг</a>
+      <a href="#track">Захиалга хянах</a>
+      <a href="#order">Захиалга өгөх</a>
+    </div>
+    <button class="cart-btn" onclick="openCart()">🧺 Сагс <span class="cart-count" id="cartCount">0</span></button>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">● Өнөөдөр тарьсан — өнөөдөр хүргэнэ</div>
+      <h1>Талбайгаас<br><em>таны гал тогоо</em> хүртэл.</h1>
+      <p class="lead">ХӨРС нь орон нутгийн тариаланчдаас өдөр бүр шинэхэн хүнсний ногоо түүж, 90 минутын дотор гэрт тань хүргэдэг үйлчилгээ.</p>
+      <div class="hero-cta">
+        <button class="btn-primary" onclick="document.getElementById('products').scrollIntoView({behavior:'smooth'})">Ногоо үзэх</button>
+        <button class="btn-ghost" onclick="document.getElementById('track').scrollIntoView({behavior:'smooth'})">Захиалгаа хянах</button>
+      </div>
+    </div>
+    <div class="crate">
+      <div class="crate-grid" id="heroCrate"></div>
+      <div class="crate-foot"><span class="mono">6 тариаланчаас</span><span class="fresh">Дундаж эрин: 4 цаг</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="strip"><div class="strip-inner" id="stripInner"></div></div>
+
+<section id="products">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Өнөөдрийн<br>сонголт</h2>
+      <p>Үнийг тухайн өдрийн ургацаас хамааруулан тогтоосон. Килограмаар захиална.</p>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div class="product-grid" id="productGrid"></div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="how">
+      <div class="how-inner">
+        <div class="sec-head">
+          <h2>Хэрхэн<br>ажилладаг вэ</h2>
+          <p>Дөрвөн энгийн алхам — таримал талбайгаас гал тогоо хүртэл.</p>
+        </div>
+        <div class="steps">
+          <div class="step"><div class="num">01</div><h3>Сонгоно</h3><p>Өнөөдрийн шинэ ургацаас хэрэгтэй ногоогоо сагслана.</p></div>
+          <div class="step"><div class="num">02</div><h3>Захиална</h3><p>Хаяг, төлбөрөө баталгаажуулж захиалга илгээнэ.</p></div>
+          <div class="step"><div class="num">03</div><h3>Түүнэ</h3><p>Түншлэгч тариаланч захиалгыг таны захиалсны дараа шууд түүж бэлтгэнэ.</p></div>
+          <div class="step"><div class="num">04</div><h3>Хүргэнэ</h3><p>Хөргөгчтэй тээврээр 90 минутын дотор хаягт тань хүрнэ.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="track">
+  <div class="wrap">
+    <div class="sec-head">
+      <h2>Захиалгаа<br>хянах</h2>
+      <p>Захиалгын дугаараа оруулаад бодит явцыг харна уу — сервер дэх өгөгдлөөс шууд.</p>
+    </div>
+    <div class="track-panel">
+      <div class="track-form">
+        <input id="trackInput" type="text" placeholder="Захиалгын дугаар, ж: ХӨРС-2381">
+        <button class="btn-primary" onclick="startTracking()">Хайх</button>
+      </div>
+      <div id="trackMsg" class="track-msg"></div>
+      <div class="rail" id="rail" style="display:none">
+        <div class="rail-line"></div>
+        <div class="rail-fill" id="railFill" style="height:0%"></div>
+        <div class="tstep pending" data-status="RECEIVED"><div class="tdot">✓</div><div><h4>Захиалга хүлээн авав</h4><p>Таны захиалгыг бид баталгаажууллаа.</p></div></div>
+        <div class="tstep pending" data-status="PICKING"><div class="tdot">🌱</div><div><h4>Талбайгаас түүж байна</h4><p>Тариаланч тань захиалгыг бэлдэж байна.</p></div></div>
+        <div class="tstep pending" data-status="PACKED"><div class="tdot">🧺</div><div><h4>Хайрцаглаж байна</h4><p>Шинэхэн ногоог хөргөгчтэй сагсанд савлаж байна.</p></div></div>
+        <div class="tstep pending" data-status="DELIVERING"><div class="tdot">🚴</div><div><h4>Хүргэлтэнд гарлаа</h4><p>Хүргэгч тань замд гарлаа.</p></div></div>
+        <div class="tstep pending" data-status="DELIVERED"><div class="tdot">🏠</div><div><h4>Хүргэгдсэн</h4><p>Гар дээр тань хүрлээ — амтжаарай!</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="order">
+  <div class="cta-band">
+    <div class="wrap">
+      <h2>Сагсаа бэлдчихсэн бол хаягаа үлдээгээд захиалгаа баталгаажуулъя.</h2>
+      <p class="mono" style="opacity:.6; margin-top:8px; font-size:12.5px;">🚴 Одоогоор зөвхөн Дархан хотод хүргэлт хийж байна.</p>
+      <div class="order-form">
+        <input id="ofName" type="text" placeholder="Нэр">
+        <input id="ofPhone" type="tel" placeholder="Утасны дугаар">
+        <select id="ofBag" class="full">
+          <option value="">Багаа сонгоно уу</option>
+          <option>1-р баг</option><option>2-р баг</option><option>3-р баг</option>
+          <option>4-р баг</option><option>5-р баг</option><option>6-р баг</option>
+          <option>7-р баг</option><option>8-р баг</option><option>9-р баг</option>
+          <option>10-р баг</option><option>11-р баг</option><option>12-р баг</option>
+          <option>13-р баг</option><option>14-р баг</option><option>15-р баг</option>
+        </select>
+        <input id="ofAddressDetail" type="text" class="full" placeholder="Гудамж, байр, тоот (жишээ: 3-р хороолол, 15-р байр, 24 тоот)">
+        <textarea id="ofNote" placeholder="Хүргэлтийн тэмдэглэл (сонголтоор)"></textarea>
+        <button class="btn-primary full" id="submitBtn" onclick="submitOrder()">Захиалга баталгаажуулах →</button>
+      </div>
+      <div class="pay-box" id="payBox">
+        <img id="payQr" src="" alt="QPay QR">
+        <p id="payMsg">QPay аппаараа энэ QR кодыг уншуулж төлбөрөө төлнө үү.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-row">
+    <div class="logo" style="font-size:18px;"><span class="dot"></span>ХӨРС</div>
+    <span class="mono">Дархан хот · Өдөр бүр 07:00–21:00 · Ямар ч захиалгад 90 минутын хүргэлт</span>
+    <a href="/courier.html" class="mono" style="opacity:.4;text-decoration:none;">Хүргэгчийн хуудас →</a>
+    <a href="/admin.html" class="mono" style="opacity:.4;text-decoration:none;">Бүтээгдэхүүн удирдах →</a>
+  </div>
+</footer>
+
+<div class="overlay" id="overlay" onclick="closeCart()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head"><h3>Таны сагс</h3><button class="drawer-close" onclick="closeCart()">✕</button></div>
+  <div class="drawer-items" id="drawerItems"></div>
+  <div class="drawer-foot">
+    <div class="drawer-total"><span>Нийт дүн</span><span id="cartTotal">0 ₮</span></div>
+    <button class="btn-primary" style="width:100%" onclick="closeCart(); document.getElementById('order').scrollIntoView({behavior:'smooth'});">Захиалга руу үргэлжлүүлэх</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = ''; // same-origin. If frontend is hosted separately, put the API base URL here.
+let PRODUCTS = [];
+let cart = {}; // productId -> qty
+let activeCat = "бүгд";
+let trackTimer = null;
+
+function money(n){ return n.toLocaleString('en-US') + " ₮"; }
+
+async function loadProducts(){
+  const res = await fetch(`${API}/api/products`);
+  PRODUCTS = await res.json();
+  renderHeroCrate();
+  renderStrip();
+  renderFilters();
+  renderGrid();
+}
+
+function renderHeroCrate(){
+  document.getElementById('heroCrate').innerHTML =
+    PRODUCTS.slice(0,9).map(p => `<div class="veg-chip" style="background:${p.color}">${p.emoji}</div>`).join('');
+}
+function renderStrip(){
+  const items = PRODUCTS.map(p => `<span>${p.emoji} ${p.name} — ${money(p.price)}/${p.unit}</span>`).join('');
+  document.getElementById('stripInner').innerHTML = items + items;
+}
+function renderFilters(){
+  const cats = ["бүгд", ...new Set(PRODUCTS.map(p=>p.category))];
+  document.getElementById('filters').innerHTML =
+    cats.map(c => `<button class="filter-btn ${c===activeCat?'active':''}" onclick="setCat('${c}')">${c}</button>`).join('');
+}
+function setCat(c){ activeCat = c; renderFilters(); renderGrid(); }
+function renderGrid(){
+  const list = activeCat === "бүгд" ? PRODUCTS : PRODUCTS.filter(p => p.category === activeCat);
+  document.getElementById('productGrid').innerHTML = list.map(p => `
+    <div class="card">
+      <div class="card-visual" style="background:${p.color}">${p.emoji}</div>
+      <div><h3>${p.name}</h3><div class="sub">${p.category} · ${p.unit}</div></div>
+      <div class="card-foot"><span class="price">${money(p.price)}</span>
+        <button class="add-btn" onclick="addToCart(${p.id})">+</button></div>
+    </div>`).join('');
+}
+
+function addToCart(id){
+  cart[id] = (cart[id] || 0) + 1;
+  updateCartUI();
+  const p = PRODUCTS.find(x=>x.id===id);
+  showToast(p.name + " сагсанд нэмэгдлээ");
+}
+function changeQty(id, delta){
+  if(!cart[id]) return;
+  cart[id] += delta;
+  if(cart[id] <= 0) delete cart[id];
+  updateCartUI();
+}
+function updateCartUI(){
+  const ids = Object.keys(cart);
+  document.getElementById('cartCount').textContent = ids.reduce((s,id)=>s+cart[id],0);
+  const itemsEl = document.getElementById('drawerItems');
+  if(ids.length === 0){
+    itemsEl.innerHTML = `<div class="empty-cart">Сагс хоосон байна.<br>Ногоо нэмээд эхлээрэй 🥕</div>`;
+  } else {
+    itemsEl.innerHTML = ids.map(id => {
+      const p = PRODUCTS.find(x=>x.id==id);
+      return `<div class="drawer-item">
+        <div class="di-icon" style="background:${p.color}">${p.emoji}</div>
+        <div class="di-info"><h4>${p.name}</h4><div class="mono">${money(p.price)} / ${p.unit}</div></div>
+        <div class="qty"><button onclick="changeQty(${id},-1)">−</button><span>${cart[id]}</span><button onclick="changeQty(${id},1)">+</button></div>
+      </div>`;
+    }).join('');
+  }
+  const total = ids.reduce((s,id) => s + cart[id]*PRODUCTS.find(x=>x.id==id).price, 0);
+  document.getElementById('cartTotal').textContent = money(total);
+}
+function openCart(){ document.getElementById('drawer').classList.add('open'); document.getElementById('overlay').classList.add('open'); }
+function closeCart(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=> t.classList.remove('show'), 2500);
+}
+
+async function submitOrder(){
+  const name = document.getElementById('ofName').value.trim();
+  const phone = document.getElementById('ofPhone').value.trim();
+  const bag = document.getElementById('ofBag').value.trim();
+  const detail = document.getElementById('ofAddressDetail').value.trim();
+  const note = document.getElementById('ofNote').value.trim();
+  const ids = Object.keys(cart);
+
+  if(ids.length === 0){ showToast("Эхлээд сагсандаа ногоо нэмнэ үү"); return; }
+  if(!name || !phone || !bag || !detail){ showToast("Нэр, утас, баг, дэлгэрэнгүй хаягаа бөглөнө үү"); return; }
+
+  const address = `Дархан хот, ${bag}, ${detail}`;
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = "Илгээж байна...";
+
+  try{
+    const res = await fetch(`${API}/api/orders`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        customerName:name, phone, address, note,
+        items: ids.map(id => ({ productId:Number(id), qty:cart[id] }))
+      })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Алдаа гарлаа');
+
+    showToast(`Захиалга #${data.orderNumber} баталгаажлаа!`);
+    cart = {}; updateCartUI();
+
+    if(data.payment && data.payment.qrImage){
+      document.getElementById('payQr').src = `data:image/png;base64,${data.payment.qrImage}`;
+      document.getElementById('payBox').classList.add('show');
+    } else if (data.payment && data.payment.configured === false){
+      document.getElementById('payBox').classList.remove('show');
+    }
+
+    document.getElementById('trackInput').value = data.orderNumber;
+    document.getElementById('track').scrollIntoView({behavior:'smooth'});
+    startTracking();
+  } catch(err){
+    showToast(err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = "Захиалга баталгаажуулах →";
+  }
+}
+
+async function startTracking(){
+  const orderNumber = document.getElementById('trackInput').value.trim();
+  const msgEl = document.getElementById('trackMsg');
+  const rail = document.getElementById('rail');
+  if(!orderNumber){ msgEl.textContent = "Захиалгын дугаараа оруулна уу."; return; }
+
+  clearInterval(trackTimer);
+  msgEl.textContent = "Хайж байна...";
+
+  async function poll(){
+    try{
+      const res = await fetch(`${API}/api/orders/${encodeURIComponent(orderNumber)}/track`);
+      if(!res.ok){ msgEl.textContent = "Ийм дугаартай захиалга олдсонгүй."; rail.style.display='none'; clearInterval(trackTimer); return; }
+      const data = await res.json();
+      rail.style.display = 'block';
+      msgEl.textContent = `Захиалга #${data.orderNumber} · Нийт дүн: ${money(data.total)} · Төлбөр: ${data.paymentStatus === 'PAID' ? 'Төлөгдсөн' : 'Хүлээгдэж буй'}`;
+
+      const idx = data.statusFlow.indexOf(data.status);
+      document.querySelectorAll('.tstep').forEach(el => {
+        const sIdx = data.statusFlow.indexOf(el.dataset.status);
+        el.className = 'tstep ' + (sIdx < idx ? 'done' : sIdx === idx ? 'current' : 'pending');
+      });
+      document.getElementById('railFill').style.height = (idx/(data.statusFlow.length-1)*100) + '%';
+
+      if(data.status === data.statusFlow[data.statusFlow.length-1]){
+        clearInterval(trackTimer);
+      }
+    } catch(e){
+      msgEl.textContent = "Сервертэй холбогдоход алдаа гарлаа.";
+    }
+  }
+  poll();
+  trackTimer = setInterval(poll, 4000);
+}
+
+loadProducts();
+updateCartUI();
+</script>
+</body>
+</html>

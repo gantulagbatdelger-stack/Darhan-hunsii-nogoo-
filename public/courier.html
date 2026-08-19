@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ХӨРС · Хүргэгчийн хуудас</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --soil-dark:#2b2018; --soil:#4a3728; --leaf-deep:#2f4a34; --leaf:#5c8a52;
+    --carrot:#e2792f; --cream:#f6f1e4; --paper:#fffdf7; --line: rgba(43,32,24,0.14);
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--cream); color:var(--soil-dark); font-family:'Manrope',sans-serif; padding-bottom:40px; }
+  h1,h2{ font-family:'Fraunces',serif; font-weight:700; margin:0; }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+  header{ background:var(--soil-dark); color:var(--cream); padding:22px 20px; position:sticky; top:0; z-index:10; }
+  header h1{ font-size:22px; }
+  header .sub{ font-size:12.5px; opacity:.65; margin-top:4px; }
+  .wrap{ max-width:640px; margin:0 auto; padding:0 16px; }
+
+  /* login gate */
+  .gate{ max-width:340px; margin:80px auto; text-align:center; padding:0 20px; }
+  .gate h2{ font-size:24px; margin-bottom:10px; }
+  .gate p{ color:var(--soil); opacity:.7; font-size:14px; margin-bottom:24px; }
+  .gate input{ width:100%; text-align:center; letter-spacing:.3em; font-size:22px; padding:16px; border-radius:12px; border:1.5px solid var(--line); background:var(--paper); font-family:'IBM Plex Mono',monospace; }
+  .gate button{ width:100%; margin-top:14px; background:var(--leaf-deep); color:var(--paper); border:none; border-radius:12px; padding:15px; font-weight:700; font-size:15px; cursor:pointer; }
+  .gate .err{ color:#b3392f; font-size:13px; margin-top:10px; min-height:18px; }
+
+  .empty{ text-align:center; padding:80px 20px; opacity:.5; font-size:14px; }
+  .refresh-row{ display:flex; justify-content:space-between; align-items:center; padding:18px 0 8px; font-size:12.5px; opacity:.6; }
+
+  .order-card{ background:var(--paper); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:14px; }
+  .order-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .order-top h3{ font-family:'Fraunces',serif; font-size:18px; margin:0 0 3px; }
+  .order-top .addr{ font-size:13.5px; color:var(--soil); line-height:1.4; }
+  .badge{ font-family:'IBM Plex Mono',monospace; font-size:11px; padding:4px 9px; border-radius:999px; white-space:nowrap; }
+  .badge.RECEIVED{ background:#ede4cf; color:var(--soil); }
+  .badge.PICKING{ background:#dcecd3; color:var(--leaf-deep); }
+  .badge.PACKED{ background:#f3dcae; color:#7a5417; }
+  .badge.DELIVERING{ background:#f6cdb9; color:#a3441a; }
+  .items{ margin:12px 0; padding:10px 0; border-top:1px dashed var(--line); border-bottom:1px dashed var(--line); font-size:13.5px; }
+  .items div{ display:flex; justify-content:space-between; padding:3px 0; }
+  .items .name{ opacity:.85; }
+  .items .qty{ font-family:'IBM Plex Mono',monospace; opacity:.6; }
+  .meta{ display:flex; justify-content:space-between; font-size:12.5px; opacity:.6; margin-bottom:14px; }
+  .pay-tag{ font-weight:700; }
+  .pay-tag.PAID{ color:var(--leaf-deep); }
+  .pay-tag.UNPAID{ color:var(--carrot); }
+  .call-row{ display:flex; gap:10px; margin-bottom:12px; }
+  .call-row a{ flex:1; text-align:center; padding:11px; border-radius:10px; border:1.5px solid var(--line); text-decoration:none; color:var(--soil-dark); font-size:13.5px; font-weight:600; }
+  .advance-btn{ width:100%; background:var(--leaf-deep); color:var(--paper); border:none; border-radius:10px; padding:14px; font-weight:700; font-size:14.5px; cursor:pointer; }
+  .advance-btn:active{ transform:scale(.98); }
+  .advance-btn:disabled{ opacity:.5; }
+  .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(20px); opacity:0; background:var(--soil-dark); color:var(--cream); padding:12px 20px; border-radius:999px; font-size:13.5px; font-weight:600; transition:.25s; pointer-events:none; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div id="gate" class="gate">
+  <h2>🚴 Хүргэгчийн нэвтрэлт</h2>
+  <p>Ажлын PIN кодоо оруулна уу.</p>
+  <input id="pinInput" type="password" inputmode="numeric" placeholder="••••" maxlength="10">
+  <button onclick="tryLogin()">Нэвтрэх</button>
+  <div class="err" id="loginErr"></div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="wrap">
+      <h1>🚴 Хүргэлтийн жагсаалт</h1>
+      <div class="sub" id="headerSub">Ачааллаж байна...</div>
+    </div>
+  </header>
+  <div class="wrap">
+    <div class="refresh-row">
+      <span id="countLabel"></span>
+      <span>Автоматаар 10 секунд тутам шинэчилнэ</span>
+    </div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+let pin = sessionStorage.getItem('courierPin') || '';
+const STATUS_LABEL = {
+  RECEIVED:'Захиалга хүлээн авав', PICKING:'Түүж байна', PACKED:'Хайрцаглаж байна', DELIVERING:'Хүргэлтэнд гарлаа'
+};
+const NEXT_LABEL = {
+  RECEIVED:'Түүж эхлэх →', PICKING:'Хайрцаглаж бэлэн боллоо →', PACKED:'Хүргэлтэнд гарлаа →', DELIVERING:'Хүргэгдсэн гэж тэмдэглэх ✓'
+};
+
+function money(n){ return n.toLocaleString('en-US') + ' ₮'; }
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(window._t); window._t = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+async function tryLogin(){
+  const val = document.getElementById('pinInput').value.trim();
+  if(!val){ return; }
+  pin = val;
+  const ok = await loadOrders(true);
+  if(ok){
+    sessionStorage.setItem('courierPin', pin);
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    startPolling();
+  }
+}
+
+async function loadOrders(silent){
+  try{
+    const res = await fetch(`${API}/api/courier/orders`, { headers: { 'x-courier-pin': pin } });
+    if(res.status === 401){
+      document.getElementById('loginErr').textContent = 'PIN буруу байна.';
+      return false;
+    }
+    if(!res.ok){
+      document.getElementById('loginErr').textContent = 'Сервертэй холбогдоход алдаа гарлаа.';
+      return false;
+    }
+    const data = await res.json();
+    renderOrders(data.orders);
+    return true;
+  } catch(e){
+    document.getElementById('loginErr').textContent = 'Сервертэй холбогдоход алдаа гарлаа.';
+    return false;
+  }
+}
+
+function renderOrders(orders){
+  document.getElementById('headerSub').textContent = `${orders.length} идэвхтэй захиалга`;
+  document.getElementById('countLabel').textContent = new Date().toLocaleTimeString('mn-MN');
+  const list = document.getElementById('list');
+
+  if(orders.length === 0){
+    list.innerHTML = `<div class="empty">Одоогоор хүргэх захиалга алга 🎉</div>`;
+    return;
+  }
+
+  list.innerHTML = orders.map(o => `
+    <div class="order-card">
+      <div class="order-top">
+        <div>
+          <h3>${o.orderNumber}</h3>
+          <div class="addr">${o.customerName} · ${o.address}</div>
+        </div>
+        <span class="badge ${o.status}">${STATUS_LABEL[o.status] || o.status}</span>
+      </div>
+      <div class="items">
+        ${o.items.map(it => `<div><span class="name">${it.name}</span><span class="qty">${it.qty} ${it.unit}</span></div>`).join('')}
+      </div>
+      <div class="meta">
+        <span>Нийт: <strong>${money(o.total)}</strong></span>
+        <span class="pay-tag ${o.paymentStatus}">${o.paymentStatus === 'PAID' ? '✓ Төлөгдсөн' : 'Төлбөр хүлээгдэж буй'}</span>
+      </div>
+      ${o.note ? `<div class="meta" style="margin-top:-6px"><span>📝 ${o.note}</span></div>` : ''}
+      <div class="call-row">
+        <a href="tel:${o.phone}">📞 ${o.phone}</a>
+      </div>
+      <button class="advance-btn" onclick="advance('${o.orderNumber}', this)">${NEXT_LABEL[o.status] || 'Дараагийн шат'}</button>
+    </div>
+  `).join('');
+}
+
+async function advance(orderNumber, btn){
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = 'Илгээж байна...';
+  try{
+    const res = await fetch(`${API}/api/orders/${encodeURIComponent(orderNumber)}/advance`, {
+      method:'POST',
+      headers: { 'x-courier-pin': pin }
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Алдаа гарлаа');
+    showToast(`${orderNumber}: ${STATUS_LABEL[data.status] || data.status}`);
+    loadOrders();
+  } catch(e){
+    showToast(e.message);
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
+let pollTimer = null;
+function startPolling(){
+  clearInterval(pollTimer);
+  pollTimer = setInterval(() => loadOrders(true), 10000);
+}
+
+// auto-login if pin already stored this session
+if(pin){
+  loadOrders(true).then(ok => {
+    if(ok){
+      document.getElementById('gate').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      startPolling();
+    }
+  });
+}
+document.getElementById('pinInput').addEventListener('keydown', e => { if(e.key === 'Enter') tryLogin(); });
+</script>
+</body>
+</html>
