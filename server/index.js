@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const db = require('./db');
 const qpay = require('./qpay');
+const telegram = require('./telegram');
 
 const app = express();
 app.use(cors());
@@ -141,6 +142,17 @@ app.post('/api/orders', async (req, res) => {
   });
   tx();
 
+  // Захиалга орж ирмэгц Telegram руу мэдэгдэл илгээнэ (тохируулагдсан бол).
+  telegram.notifyNewOrder({
+    orderNumber,
+    customerName,
+    phone,
+    address,
+    note,
+    total,
+    items: resolvedItems,
+  });
+
   // Try to create a real QPay invoice if credentials are configured.
   let payment = { configured: false };
   if (qpay.credentialsConfigured()) {
@@ -258,4 +270,5 @@ app.post('/api/qpay/callback', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`ХӨРС сервер http://localhost:${PORT} дээр ажиллаж байна`);
   console.log(`QPay тохиргоо: ${qpay.credentialsConfigured() ? 'холбогдсон' : 'тохируулаагүй (.env үзнэ үү)'}`);
+  console.log(`Telegram мэдэгдэл: ${telegram.configured() ? 'холбогдсон' : 'тохируулаагүй (.env үзнэ үү)'}`);
 });
